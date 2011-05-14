@@ -1,0 +1,5 @@
+{
+"bmml_path": "/Users/bmbouter/Documents/python/django-balsamiq/output",
+"name": "foobar",
+"urls": [{"path": "regex_for_url", "name": "name_for_url", "method_types": ["GET", "PUT", "POST", "DELETE"], "return_types": ["HTML", "JSON", "XML"]}]
+}
