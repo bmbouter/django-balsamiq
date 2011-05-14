@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import re
 
 """
@@ -24,5 +26,11 @@ def identifier(s):
 def yn(s):
     if s.lower() not in ("y", "yes", "n", "no", ""):
         print("Please answer yes or no")
+        return False
+    return True
+
+def numeric(s):
+    if not s.isdigit():
+        print("Enter a number")
         return False
     return True
