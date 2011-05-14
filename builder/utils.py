@@ -24,3 +24,7 @@ def create_app():
     proj_json = get_project_json()
     output = Popen(["django-admin.py", "startapp", proj_json['name']], stdout=PIPE).communicate()[0]
     print output
+
+def get_path_inside_app(*args, **kwargs):
+    project_json = get_project_json()
+    return os.path.join(os.path.abspath(project_json['name']), *args)

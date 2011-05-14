@@ -2,7 +2,7 @@ import json
 import os
 from subprocess import Popen, PIPE
 
-from utils import get_project_json
+from utils import get_project_json, get_path_inside_app
 
 urls_template = """from django.conf.urls.defaults import *
 
@@ -11,7 +11,7 @@ urlpatterns = patterns('',
 
 def create_urls():
     project_json =  get_project_json()
-    urls_file_path = os.path.join(os.path.abspath(project_json['name']), 'urls.py')
+    urls_file_path = get_path_inside_app('urls.py')
     f = open(urls_file_path, 'w')
     f.write(urls_template)
     for url in project_json['urls']:
