@@ -122,19 +122,11 @@ def prompt_yn(prompt, defaultyes=True):
     else:
         return False
 
-def find_projectjson(arg):
+def find_projectjson():
     """Returns the json object for the project.json"""
-    if not arg:
-        targetdir = os.getcwd()
-    else:
-        targetdir = arg
+    targetdir = os.getcwd()
 
-    if os.path.isfile(targetdir):
-        targetfile = targetdir
-    else:
-        if not os.path.isdir(targetdir):
-            return False
-        targetfile = os.path.join(targetdir, "project.json")
+    targetfile = os.path.join(targetdir, "project.json")
 
     with open(targetfile, "r") as f:
         return json.load(f)
