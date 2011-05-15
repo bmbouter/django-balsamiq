@@ -20,6 +20,17 @@ def split_lines(s, textwidth=80):
 
 def split_lines_indent(s, indent, textwidth=80):
     "Indents all lines but the first by indent spaces"
+    # Special case: if the string has any newlines, split by newline and indent
+    # each section separately
+    if "\n" in s:
+        parts = s.split("\n")
+        newparts = [split_lines_indent(parts[0], indent, textwidth)]
+        for p in parts[1:]:
+            p = split_lines(p, textwidth=textwidth-indent)
+            p = " "*indent + p
+            newparts.append(p)
+
+        return "\n".join(newparts)
     parts = []
     # Initial split, no indent
     if len(s) > textwidth:
@@ -43,7 +54,7 @@ def prompt_choices(choices):
     num_choices = len(choices)
 
     def print_menu():
-        print("%2s) %s" % (0, split_lines_indent("Show menu again",4)))
+        #print("%2s) %s" % (0, split_lines_indent("Show menu again",4)))
         for num, c in enumerate(choices):
             print("%2s) %s" % (num+1, split_lines_indent(c,4)))
 
@@ -131,3 +142,11 @@ def find_projectjson():
     with open(targetfile, "r") as f:
         return json.load(f)
 
+def save_projectjson(jsonobj):
+    """Saves project.json"""
+    targetdir = os.getcwd()
+
+    targetfile = os.path.join(targetdir, "project.json")
+
+    with open(targetfile, "w") as f:
+        return json.dump(jsonobj, f)

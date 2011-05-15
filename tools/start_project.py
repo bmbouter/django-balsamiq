@@ -11,14 +11,13 @@ import utils.checks
 usage = """
 start_project.py - creates a new django-balsamic project
 
-Usage: start_project.py <bmml path> [output directory]
+Usage: start_project.py <bmml path>
 
 bmml path
     This is the path to your Balsamic project
 
-output directory
-    This is the directory to create the django-balsamic project. If not
-    specified, will use the current directory.
+start_project.py will create the django-balsamic project in the current
+directory.
 
 """
 
@@ -43,7 +42,7 @@ def main(args):
             )
 
     # write out project.json
-    outdir = args[1] if len(args) >= 2 else os.getcwd()
+    outdir = os.getcwd()
     outfile = open(os.path.join(outdir, "project.json"), "w")
     json.dump(out, outfile)
     outfile.write("\n")
