@@ -9,7 +9,8 @@ import utils
 import utils.checks
 
 usage = """
-gather_urls.py - Scans for bmml files and asks for page names and urls
+url_method_types.py - Scans for bmml files and asks for html method types and
+return types
 
 Usage: start_project.py
 
@@ -21,7 +22,7 @@ class BMML(object):
         self.data = json_dict
 
     def is_new(self):
-        return not ("name" in self.data and "regex" in self.data)
+        return not ("method_types" in self.data and "return_types" in self.data)
 
 def main(args):
     project = utils.find_projectjson()
@@ -107,21 +108,51 @@ def ask_new_files(all_bmmls):
 
 def edit_bmml(bmml):
     print()
-    print("Regarding \"%s\"" % bmml.path)
-    print(utils.split_lines("What should its name be? This is the name"
-            " used to reference back-links,"
-            " so it should be an identifier"))
-    name = utils.prompt_user("Enter name", checks=[utils.checks.identifier]) 
+    print("Regarding \"%s\"'s method types..." % bmml.path)
+    cur = bmml.data['method_types'] if 'method_types' in bmml.data else ["GET"]
+    if 'method_types' in bmml.data:
+        print(" (current method types: %s)" % cur)
+    get = utils.prompt_yn("Should GET be a method type?",
+            "GET" in cur)
+    post = utils.prompt_yn("Should POST be a method type?",
+            "POST" in cur)
+    put = utils.prompt_yn("Should PUT be a method type?",
+            "PUT" in cur)
+    delete = utils.prompt_yn("Should DELETE be a method type?",
+            "DELETE" in cur)
+    mtypes = []
+    if get:
+        mtypes.append("GET")
+    if post:
+        mtypes.append("POST")
+    if put:
+        mtypes.append("PUT")
+    if delete:
+        mtypes.append("DELETE")
+
 
     print()
-    print(utils.split_lines("Now, under what URL path should serve this"
-            " page? This goes straight to Django's urls file so this"
-            " should be a regex"))
-    regex = utils.prompt_user("Enter URL regex", checks=[utils.checks.not_empty])
+    print("Regarding \"%s\"'s return types..." % bmml.path)
+    cur = bmml.data['return_types'] if 'return_types' in bmml.data else ["HTML"]
+    if 'return_types' in bmml.data:
+        print(" (current return types: %s)" % cur)
+    html = utils.prompt_yn("Should HTML be a return type?",
+            "HTML" in cur)
+    json = utils.prompt_yn("Should JSON be a return type?",
+            "JSON" in cur)
+    xml = utils.prompt_yn("Should XML be a return type?",
+            "XML" in cur)
+    rtypes = []
+    if html:
+        rtypes.append("HTML")
+    if json:
+        rtypes.append("JSON")
+    if xml:
+        rtypes.append("XML")
 
-    bmml.data['name'] = name
-    bmml.data['regex'] = regex
-    print(utils.split_lines("So file %s is going to serve on \"%s\" and have reference name %s" % (bmml.path, regex, name)))
+    bmml.data['method_types'] = mtypes
+    bmml.data['return_types'] = rtypes
+    print(utils.split_lines("So file %s is going to serve these method types: %s and have these return types: %s" % (bmml.path, mtypes, rtypes)))
     print("Got it, moving on...")
 
 def choose_files(all_bmmls):
@@ -129,10 +160,10 @@ def choose_files(all_bmmls):
     options = []
     for b in all_bmmls:
         options.append(
-                "%s\n%s\tr'%s'" % (
+                "%s\n%s\t%s" % (
                     b.path, 
-                    b.data['name'] if 'name' in b.data else "(needs a name)",
-                    b.data['regex'] if 'regex' in b.data else "(needs a url)",
+                    b.data['method_types'] if 'method_types' in b.data else "(undef)",
+                    b.data['return_types'] if 'return_types' in b.data else "(undef)",
                     )
                 )
 
