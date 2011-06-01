@@ -4,11 +4,12 @@ import json
 import os
 import os.path
 import sys
-from xml.dom.minidom import parse
-from urllib import unquote
+from xml.dom import Node
 
 import utils
 import utils.checks
+
+from forms import Form, BMML
 
 usage = """
 define_forms.py - Scans the bmml files for forms and allows the user to enumerate them
@@ -16,45 +17,6 @@ define_forms.py - Scans the bmml files for forms and allows the user to enumerat
 Usage: define_forms.py
 
 """
-
-class BMML(object):
-    def __init__(self, path):
-        self.path = path
-        import pdb;pdb.set_trace()
-        self.dom = parse(path)
-
-    def find_grouped(self):
-        groups = []
-        for control in self.dom.getElementsByTagName('control'):
-            if '__group__' == control.getAttribute('controlTypeID'):
-                groups.append(Form(self, control))
-        return groups
-
-def dfs_handle_node(node, results):
-    for child in node.childNodes:
-        dfs_handle_node(child, results)
-    if node.nodeType != 1:
-        print('     skipping: %s' % node)
-    print('visiting: %s' % node)
-
-class Form(object):
-    def __init__(self, bmml, dom):
-        self.bmml = bmml
-        self.dom = dom
-        self.name = dom.getElementsByTagName('controlName')[0].childNodes[0].nodeValue
-        self.name = unquote(self.name)
-
-    @property
-    def elements(self):
-        results = []
-        return dfs_handle_node(self.dom, results)
-
-    def __unicode__(self):
-        import pdb;pdb.set_trace()
-        return unicode('okok')
-
-    def __repr__(self):
-        return self.__unicode__()
 
 def main():
     project = utils.find_projectjson()
@@ -77,61 +39,68 @@ def main():
                             )
                         )
 
-    # Find all __group__ controls in bmml files
-    all_groups = []
+    # Find and build Form objects for all forms found in in bmml files
+    bmml_forms = []
     for bmml_file in all_bmmls:
-        groups = bmml_file.find_grouped()
-        if len(groups) != 0:
-            all_groups.extend(groups)
+        forms = bmml_file.forms
+        if len(forms) != 0:
+            bmml_forms.extend(forms)
 
     choice = 0
-    while(choice != 4):
-        print("\nFound %s possible forms within %s bmml files! How do you want to proceed?" % (len(all_groups), len(all_bmmls)))
+    while(choice != 3 and choice != 4):
+        print("\nFound %s possible forms within %s bmml files! How do you want to proceed?" % (len(bmml_forms), len(all_bmmls)))
         choice = utils.prompt_choices([
             "Show me the currently configured forms.",
-            "Edit currently configured forms.",
+            "Delete a currently configured forms.",
             "Show me auto-detected forms, and ask me what to do with them.",
-            "Let me build a form manually.",
             "Save + Quit.  We're done here.",
+            "Quit.  Throwing away changes.",
             ])
+        print()
     
         if choice == 0:
-            show_current_forms(project)
+            display_forms(project)
         elif choice == 1:
-            edit_current_forms(project)
+            delete_a_form(project)
         elif choice == 2:
-            ask_autodetected_forms(all_groups)
+            ask_autodetected_forms(project, bmml_forms)
         elif choice == 3:
-            choose_files(all_bmmls)
+            utils.save_projectjson(project)
 
-    # Save the forms back to project.json
-    f = open('project.json', 'w')
-    f.write(json.dumps(project))
-    f.close()
-
-def show_current_forms(project):
+def display_forms(project):
     print("%s forms currently configured" % len(project['forms']))
     for form in project['forms']:
-        choices.append(form.bmml)
+        print()
+        print(form)
 
-def edit_current_forms(project):
+def delete_a_form(project):
     if not project['forms']:
-        print("You currently have no forms configured")
+        print("0 forms currently configured\n")
         return
     print("%s forms currently configured" % len(project['forms']))
+    print("Delete a form by choosing its number\n")
     choices = []
-    forms = []
     for form in project['forms']:
-        choices.append(form.bmml)
-        forms.append(form)
+        choices.append(form.name)
+    choices[-1] = choices[-1] + '\n'
+    choices.append("Don't Delete Anything\n")
     choice = utils.prompt_choices(choices)
+    if choice == len(choices) - 1:
+        return
+    yn = utils.prompt_yn('Really Delete Form "%s"?' % project['forms'][choice].name, False)
+    if yn:
+        project['forms'].pop(choice)
 
-def ask_autodetected_forms(all_grouped):
-    for group in all_grouped:
-        print()
-        print("Regarding Form name='%s'" % group.name)
-        print(group.elements)
-        regex = utils.prompt_yn("Add this form to the project?")
+def ask_autodetected_forms(project, all_forms):
+    current_forms = [f.name for f in project['forms']]
+    for form in all_forms:
+        if form.name in current_forms:
+            continue
+        print('Group "%s" found in file "%s"' % (form.name, form.bmml.path))
+        print(form)
+        if utils.prompt_yn("Add this group as a form to the project?"):
+            project['forms'].append(form)
+            current_forms.append(form.name)
 
 if __name__ == "__main__":
     main()

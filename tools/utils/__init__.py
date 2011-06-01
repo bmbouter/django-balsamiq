@@ -6,6 +6,9 @@ import sys
 
 from . import checks
 
+from utils.objects import AbstractUserObject
+from forms import Form
+
 def split_lines(s, textwidth=80):
     """Takes a string and splits it at word boundaries"""
     parts = []
@@ -49,7 +52,7 @@ def split_lines_indent(s, indent, textwidth=80):
     parts.append(" "*indent + s.strip())
     return "\n".join(parts)
 
-def prompt_choices(choices):
+def prompt_choices(choices, prompt_text="Enter your choice"):
 
     num_choices = len(choices)
 
@@ -62,7 +65,7 @@ def prompt_choices(choices):
         print_menu()
 
         while True:
-            choice = int(prompt_user("Enter your choice", checks=[checks.numeric]))
+            choice = int(prompt_user(prompt_text, checks=[checks.numeric]))
 
             if choice == 0:
                 print_menu()
@@ -133,20 +136,28 @@ def prompt_yn(prompt, defaultyes=True):
     else:
         return False
 
+class ProjectEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if issubclass(obj.__class__, AbstractUserObject):
+            return obj._json_encode()
+        return json.JSONEncoder.default(self, obj)
+
+def custom_object_decoder(obj):
+    if 'py/object' in obj:
+        if obj['py/object'] == 'forms.Form':
+            return Form.from_json(obj['name'], obj['path'])
+    return obj
+
 def find_projectjson():
     """Returns the json object for the project.json"""
     targetdir = os.getcwd()
-
     targetfile = os.path.join(targetdir, "project.json")
-
     with open(targetfile, "r") as f:
-        return json.load(f)
+        return json.load(f, object_hook=custom_object_decoder)
 
 def save_projectjson(jsonobj):
     """Saves project.json"""
     targetdir = os.getcwd()
-
     targetfile = os.path.join(targetdir, "project.json")
-
     with open(targetfile, "w") as f:
-        return json.dump(jsonobj, f)
+        return json.dump(jsonobj, f, cls=ProjectEncoder)
