@@ -15,6 +15,7 @@ def create_urls():
     f = open(urls_file_path, 'w')
     f.write(urls_template)
     for url in project_json['urls']:
+        import pdb;pdb.set_trace()
         url_view = '%s.views.%s' % (project_json['name'], url['name'])
         f.write("    (r'%s', '%s', name='%s')," % (url['path'], url_view, url['name']))
     f.write('\n)\n')

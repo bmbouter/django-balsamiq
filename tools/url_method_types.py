@@ -24,6 +24,8 @@ class BMML(object):
     def is_new(self):
         return not ("method_types" in self.data and "return_types" in self.data)
 
+from forms import BMML
+
 def main(args):
     project = utils.find_projectjson()
 
@@ -107,6 +109,7 @@ def ask_new_files(all_bmmls):
         print("That's all of them. now what do you want to do?")
 
 def edit_bmml(bmml):
+    import pdb;pdb.set_trace()
     print()
     print("Regarding \"%s\"'s method types..." % bmml.path)
     cur = bmml.data['method_types'] if 'method_types' in bmml.data else ["GET"]

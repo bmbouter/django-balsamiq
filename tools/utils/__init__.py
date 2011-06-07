@@ -52,7 +52,7 @@ def split_lines_indent(s, indent, textwidth=80):
     parts.append(" "*indent + s.strip())
     return "\n".join(parts)
 
-def prompt_choices(choices, prompt_text="Enter your choice"):
+def prompt_choices(choices):
 
     num_choices = len(choices)
 
@@ -65,7 +65,7 @@ def prompt_choices(choices, prompt_text="Enter your choice"):
         print_menu()
 
         while True:
-            choice = int(prompt_user(prompt_text, checks=[checks.numeric]))
+            choice = int(prompt_user("Enter your choice", checks=[checks.numeric]))
 
             if choice == 0:
                 print_menu()

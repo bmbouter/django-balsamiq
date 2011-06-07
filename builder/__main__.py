@@ -1,5 +1,5 @@
 import sys
-from subprocess import check_output
+from subprocess import Popen, PIPE
 
 from templates import build_template_folders
 from urls import create_urls
@@ -15,7 +15,7 @@ def main():
     create_views()
 
 def check_django_installed():
-    django_version = check_output(["django-admin.py", "--version"])
+    django_version = Popen(["django-admin.py", "--version"], stdout=PIPE).communicate()[0]
     if '1.3' not in django_version:
         print 'Django %s is installed.  1.3 is required.' % django_version
         sys.exit(1)
